@@ -9,6 +9,7 @@
 #include "xprintf.h"
 #include "oled_driver.h"
 #include "time.h"
+#include "donov.h"
 #define LL_TIM_OCMODE_PWM1  (TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1)
 #define point 10
 
@@ -108,8 +109,8 @@ static void timers_config(void)
 //handlers
 void TIM2_IRQHandler(void)
 {
-    LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_5);
-    LL_TIM_ClearFlag_CC1(TIM2);
+  LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_5);
+  LL_TIM_ClearFlag_CC1(TIM2);
 }
 //delay
 __attribute__((naked)) static void delay(void)
@@ -124,15 +125,21 @@ asm (".word 0x1F4");
 //delay
 }
 
-void ENDGAME(int* ctr, int* counter){
+void ENDGAME(int* ctr, int* counter)
+{
     if(ctr == point){
     oled_update();
     oled_set_cursor(0, 0);
-    xprintf("\n    Congratulations,\n\n    you've stayed\n\n       alive.\n\n");
+    xprintf("\n    Congratulations,\n\n    you've stayed\n\n       alive!\n\n");
     oled_update();
     LL_TIM_DisableCounter(TIM2);
+    rcc_config();
+    oled_config();
+    oled_pic(donov, 100);
+    oled_update();
 }
-    if(counter == 1){
+    if(counter == 1)
+    {
       rcc_config();
       oled_config();
       printf_config();
@@ -149,215 +156,228 @@ void ENDGAME(int* ctr, int* counter){
         LL_TIM_SetPrescaler(TIM2, 239);
         LL_TIM_OC_SetCompareCH1(TIM2,15);
       }
-
     }
 
     LL_GPIO_TogglePin(GPIOA, LL_GPIO_PIN_10);
     LL_GPIO_TogglePin(GPIOA, LL_GPIO_PIN_11);
     LL_GPIO_TogglePin(GPIOA, LL_GPIO_PIN_12);
     LL_GPIO_TogglePin(GPIOA, LL_GPIO_PIN_13);
-
   }
 
 int counter = 100;
 
 main(void)
 {
-    gpio_config();
-    timers_config();
-    int but_USER = 0;
-    int but_0 = 0;
-    int but_1 = 0;
-    int but_2 = 0;
-    int but_3 = 0;
-    int butcount_0 = 0;
-    int butcount_1 = 0;
-    int butcount_2 = 0;
-    int butcount_3 = 0;
-    int butUSERcount = 0;
-    int press_num = 1;
-    int count = 0;
-    int ctr = 0;
-    int reset_flag = 0;
-    while (counter > 0){
-
-     if ((LL_GPIO_IsInputPinSet(GPIOC, LL_GPIO_PIN_14) == 1)|| (LL_GPIO_IsInputPinSet(GPIOC, LL_GPIO_PIN_7) == 1)||(LL_GPIO_IsInputPinSet(GPIOC, LL_GPIO_PIN_2) == 1)||(LL_GPIO_IsInputPinSet(GPIOC, LL_GPIO_PIN_3) == 1))
-  {
- count++;
- if(count >= 5){
-   butcount_0 = 0;
-   butcount_1 = 0;
-   butcount_2 = 0;
-   butcount_3 = 0;
-   count = 0;
- }
-
-    if (!LL_GPIO_IsInputPinSet(GPIOC, LL_GPIO_PIN_3)){
-       butcount_3++;
-       if(butcount_3 == 2){
-          but_3 = 1;
-          ctr = ctr + 4;
-          LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_8);
-
-        }
-       delay();
-       if (LL_GPIO_IsInputPinSet(GPIOC, LL_GPIO_PIN_3)){
-          butcount_3 = 0;
-          but_3 = 0;
+  gpio_config();
+  timers_config();
 
 
-       }
-   }
-   if (!LL_GPIO_IsInputPinSet(GPIOC, LL_GPIO_PIN_2)){
-      butcount_2++;
-      if(butcount_2 == 2){
-         but_2 = 1;
-         ctr = ctr + 3;
-         LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_8);
+      /////////////////////////
+     //////////////////////////
 
-       }
-      delay();
-      if (LL_GPIO_IsInputPinSet(GPIOC, LL_GPIO_PIN_2)){
-         butcount_2 = 0;
-         but_2 = 0;
+  int but_USER = 0;
+  int but_0 = 0;
+  int but_1 = 0;
+  int but_2 = 0;
+  int but_3 = 0;
+  int butcount_0 = 0;
+  int butcount_1 = 0;
+  int butcount_2 = 0;
+  int butcount_3 = 0;
+  int butUSERcount = 0;
+  int press_num = 1;
+  int count = 0;
+  int ctr = 0;
+  int reset_flag = 0;
 
-      }
-  }
-  if (!LL_GPIO_IsInputPinSet(GPIOC, LL_GPIO_PIN_7)){
-     butcount_1++;
-     if(butcount_1 == 2){
-        but_1 = 1;
-        ctr = ctr + 2;
-        LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_8);
+  while(1){
 
-      }
-     delay();
-     if (LL_GPIO_IsInputPinSet(GPIOC, LL_GPIO_PIN_7)){
-        butcount_1 = 0;
-        but_1 = 0;
-
-     }
- }
- if (!LL_GPIO_IsInputPinSet(GPIOC, LL_GPIO_PIN_14)){
-    butcount_0++;
-    if(butcount_0 == 2){
-       but_0 = 1;
-       ctr = ctr + 1;
-       LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_8);
-
-     }
-    delay();
-    if (LL_GPIO_IsInputPinSet(GPIOC, LL_GPIO_PIN_14)){
-       butcount_0 = 0;
-       but_0 = 0;
-
-    }
-}
-
-   if (ctr == point){
-      rcc_config();
-      oled_config();
-      printf_config();
-      oled_set_cursor(53, 32);
-      xprintf(" ");
-      oled_update();
-      break;
-   }
-   if (ctr > point){
-     rcc_config();
-     oled_config();
-     printf_config();
-     oled_set_cursor(53, 32);
-     xprintf(" ");
-     oled_set_cursor(0, 0);
-     xprintf("Too big number.\n\n\nHold USER button");
-     reset_flag = 1;
-     oled_update();
-     butcount_0 = 0;
-     butcount_1 = 0;
-     butcount_2 = 0;
-     butcount_3 = 0;
-     count = 0;
-
-
-
-
-}
-    if(butUSERcount >= 2)
-    butUSERcount--;
-
-
-    if (LL_GPIO_IsInputPinSet(GPIOA, LL_GPIO_PIN_0)){
-        butUSERcount++;
-         if(butUSERcount == 2)
-           but_USER = 1;
-         delay();
-
-         if (!LL_GPIO_IsInputPinSet(GPIOA, LL_GPIO_PIN_0)){
-           butUSERcount = 0;
-           but_USER = 0;
-         }
-      }
-      else{
-         but_USER = 0;
-      }
-
-      if (!LL_GPIO_IsInputPinSet(GPIOC, LL_GPIO_PIN_0)){
-         butcount_1++;
-         if(butcount_1 == 2)
-            but_1 = 1;
-         delay();
-         if (LL_GPIO_IsInputPinSet(GPIOC, LL_GPIO_PIN_0)){
+       if ((LL_GPIO_IsInputPinSet(GPIOC, LL_GPIO_PIN_14) == 1)||
+           (LL_GPIO_IsInputPinSet(GPIOC, LL_GPIO_PIN_7 ) == 1)||
+           (LL_GPIO_IsInputPinSet(GPIOC, LL_GPIO_PIN_2 ) == 1)||
+           (LL_GPIO_IsInputPinSet(GPIOC, LL_GPIO_PIN_3 ) == 1))
+       {
+         count++;
+         if(count >= 5)
+         {
+            butcount_0 = 0;
             butcount_1 = 0;
-            but_1 = 0;
-
+            butcount_2 = 0;
+            butcount_3 = 0;
+            count = 0;
          }
-     }
+         if (!LL_GPIO_IsInputPinSet(GPIOC, LL_GPIO_PIN_3))
+         {
+           butcount_3++;
+           ctr = ctr + 4;
+           if(butcount_3 == 2)
+           {
+            but_3 = 1;
+            LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_8);
+           }
+           delay();
+           if (LL_GPIO_IsInputPinSet(GPIOC, LL_GPIO_PIN_3))
+           {
+             butcount_3 = 0;
+             but_3 = 0;
+           }
+         }
+         if (!LL_GPIO_IsInputPinSet(GPIOC, LL_GPIO_PIN_2))
+         {
+            butcount_2++;
+            if(butcount_2 == 2)
+            {
+              but_2 = 1;
+              ctr = ctr + 3;
+              LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_8);
+            }
+            delay();
+            if (LL_GPIO_IsInputPinSet(GPIOC, LL_GPIO_PIN_2))
+            {
+              butcount_2 = 0;
+              but_2 = 0;
+            }
+          }
+          if (!LL_GPIO_IsInputPinSet(GPIOC, LL_GPIO_PIN_7))
+          {
+            butcount_1++;
+            if(butcount_1 == 2)
+            {
+              but_1 = 1;
+              ctr = ctr + 2;
+              LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_8);
+            }
+            delay();
+            if (LL_GPIO_IsInputPinSet(GPIOC, LL_GPIO_PIN_7))
+            {
+              butcount_1 = 0;
+              but_1 = 0;
+            }
+          }
+          if (!LL_GPIO_IsInputPinSet(GPIOC, LL_GPIO_PIN_14))
+          {
+            butcount_0++;
+            if(butcount_0 == 2)
+            {
+              but_0 = 1;
+              ctr = ctr + 1;
+              LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_8);
+            }
+            delay();
+            if (LL_GPIO_IsInputPinSet(GPIOC, LL_GPIO_PIN_14))
+            {
+              butcount_0 = 0;
+              but_0 = 0;
+            }
+          }
+          if (ctr == point)
+          {
+            rcc_config();
+            oled_config();
+            printf_config();
+            oled_set_cursor(53, 32);
+            xprintf(" ");
+            oled_update();
+            break;
+          }
+          if (ctr > point)
+          {
+            rcc_config();
+            oled_config();
+            printf_config();
+            oled_set_cursor(53, 32);
+            xprintf(" ");
+            oled_set_cursor(0, 0);
+            xprintf("Too big number.\n\n\nHold USER button");
+            reset_flag = 1;
+            oled_update();
+            butcount_0 = 0;
+            butcount_1 = 0;
+            butcount_2 = 0;
+            butcount_3 = 0;
+            count = 0;
+          }
+          if(butUSERcount >= 2)
+          {
+          butUSERcount--;
+          }
+          if (LL_GPIO_IsInputPinSet(GPIOA, LL_GPIO_PIN_0))
+          {
+            butUSERcount++;
+            if(butUSERcount == 2)
+            {
+              but_USER = 1;
+            }
+            delay();
+            if (!LL_GPIO_IsInputPinSet(GPIOA, LL_GPIO_PIN_0))
+            {
+              butUSERcount = 0;
+              but_USER = 0;
+            }
+          }
+          else
+          {
+            but_USER = 0;
+          }
+          if (!LL_GPIO_IsInputPinSet(GPIOC, LL_GPIO_PIN_0))
+          {
+            butcount_1++;
+            if(butcount_1 == 2)
+            {
+              but_1 = 1;
+            }
+            delay();
+            if (LL_GPIO_IsInputPinSet(GPIOC, LL_GPIO_PIN_0))
+            {
+              butcount_1 = 0;
+              but_1 = 0;
+            }
+          }
+          if (but_USER)
+          {
+            LL_TIM_SetPrescaler(TIM2, 239);
+            LL_TIM_OC_SetCompareCH1(TIM2,15);
+            ctr = 0;
+            reset_flag = 0;
+            but_USER = 0;
+          }
+          else
+          {
+            if(reset_flag == 0)
+            {
+               LL_TIM_SetPrescaler(TIM2, 47999);
+               LL_TIM_OC_SetCompareCH1(TIM2,499);
+               rcc_config();
+               oled_config();
+               printf_config();
+               oled_set_cursor(53, 32);
+               xprintf("%d", counter);
+               oled_update();
+               counter--;
+               oled_update();
+            }
+            else
+            {
+               LL_TIM_SetPrescaler(TIM2, 47999);
+               LL_TIM_OC_SetCompareCH1(TIM2,499);
+               counter--;
+            }
+            if(counter == 1)
+            {
+               oled_set_cursor(53, 32);
+               rcc_config();
+               oled_config();
+               printf_config();
+               oled_set_cursor(53, 32);
+               xprintf(" ");
+               oled_update();
+               break;
+             }
+           }
+         }
+       }
+  ENDGAME(ctr, counter);
 
 
-
-     if (but_USER) {
-        LL_TIM_SetPrescaler(TIM2, 239);
-        LL_TIM_OC_SetCompareCH1(TIM2,15);
-        ctr = 0;
-        reset_flag = 0;
-        but_USER = 0;
-     }
-     else{
-        if(reset_flag == 0){
-
-         LL_TIM_SetPrescaler(TIM2, 47999);
-         LL_TIM_OC_SetCompareCH1(TIM2,499);
-         rcc_config();
-         oled_config();
-         printf_config();
-         oled_set_cursor(53, 32);
-         xprintf("%d", counter);
-         oled_update();
-         counter--;
-         oled_update();
-        }
-        else{
-          LL_TIM_SetPrescaler(TIM2, 47999);
-          LL_TIM_OC_SetCompareCH1(TIM2,499);
-          counter--;
-        }
-
-        if(counter == 1){
-           oled_set_cursor(53, 32);
-           rcc_config();
-           oled_config();
-           printf_config();
-           oled_set_cursor(53, 32);
-           xprintf(" ");
-           oled_update();
-           break;
-        }
-     }
-}
-}
-ENDGAME(ctr, counter);
-
-
-    return 0;
+  return 0;
 }
